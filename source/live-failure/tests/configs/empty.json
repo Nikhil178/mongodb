@@ -1,0 +1,8 @@
+{
+    "version": 1,
+    "processes": [],
+    "options": {
+        "downloadBase": "/tmp/mms-automation/test/versions"
+    },
+    "mongoDbVersions" : []
+}
