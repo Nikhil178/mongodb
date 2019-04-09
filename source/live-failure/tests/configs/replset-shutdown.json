@@ -1,12 +1,11 @@
 {
-    "version": 2,
+    "version": 3,
     "processes": [
         {
             "name": "foo1",
             "processType": "mongod",
             "version": "4.0.8",
             "featureCompatibilityVersion": "4.0",
-            "lastRestart": "<LAST_RESTART_PLACEHOLDER>",
             "args2_6": {
                 "systemLog": {
                     "destination": "file",
@@ -21,7 +20,8 @@
                 "replication": {
                     "replSetName": "rs1"
                 }
-            } 
+            },
+            "disabled": true
         },
         {
             "name": "foo2",
@@ -42,12 +42,14 @@
                 "replication": {
                     "replSetName": "rs1"
                 }
-            } 
+            },
+            "disabled": true
         },
         {
             "name": "foo3",
             "processType": "mongod",
             "version": "4.0.8",
+            "featureCompatibilityVersion": "4.0",
             "args2_6": {
                 "systemLog": {
                     "destination": "file",
@@ -62,7 +64,8 @@
                 "replication": {
                     "replSetName": "rs1"
                 }
-            } 
+            },
+            "disabled": true
         }
     ],
     "replicaSets": [
@@ -79,8 +82,7 @@
                 },
                 {
                     "_id": 2,
-                    "host": "foo3",
-                    "arbiterOnly": true
+                    "host": "foo3"
                 }
             ]
         }
