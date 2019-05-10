@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import argparse, contextlib, json, os, subprocess, time
+import argparse, json, os, signal, subprocess, time
 
 REPLSET_CONFIG = json.loads(
 '''
@@ -145,29 +145,35 @@ def update_topology(topology, agent_config):
     with open(agent_config, 'w') as agent_file:
         json.dump(topology, agent_file)
 
-def wait_for_agent_goal_state(agent_log, num_processes, msg):
-    '''Wait for the automation agent to reach the goal state, then clear the log.'''
+def wait_for_agent_goal_state(agent_log, num_processes, msg, start_from=0):
+    '''Wait for the automation agent to reach the goal state and returns the point in 
+       the file to resume from the next time this function is called.
+    '''
 
     goal_state = goal_state_message(num_processes)
+    curr_loc = start_from
     
     while True:
         print(msg)
         
-        try:
-            with open(agent_log) as log_file:
+        with open(agent_log) as log_file:
+            log_file.seek(curr_loc)
 
-                if goal_state in log_file.read():
-                    break
-        except FileNotFoundError:
-            pass
+            new_content = log_file.read()
+            curr_loc = log_file.tell()
+            
+            if goal_state in new_content:
+                break            
             
         time.sleep(2)
                 
-    os.remove(agent_log)
+    return curr_loc
     
 def start_automation_agent(agent_config, agent_log, topology):
     '''Initialize the automation agent and wait for the initial topology to be ready.
-       Returns the automation agent PID.'''
+       
+       Returns the automation agent PID and the location in the agent log file to
+       resume from.'''
        
     print('Launching the automation agent...')
     
@@ -179,14 +185,26 @@ def start_automation_agent(agent_config, agent_log, topology):
                     stdout=log_file,
                     stderr=subprocess.STDOUT).pid
             
-    wait_for_agent_goal_state(
-        agent_log, 
-        len(topology['processes']), 
-        'Waiting for cluster to come online...')
+    resume_from = wait_for_agent_goal_state(
+                      agent_log, 
+                      len(topology['processes']), 
+                      'Waiting for cluster to come online...')
     
-    return pid
+    return pid, resume_from
+    
+def kill_and_wait(pid):
+    os.kill(pid, signal.SIGINT)
+    
+    while True:
+        finished_pid, _ = os.wait()
+        
+        if finished_pid == pid:
+            return
+            
+        time.sleep(2)
+ 
 
-def finish(agent_pid, agent_config, agent_log, topology, tombstone_file):
+def finish(agent_pid, agent_config, agent_log, topology, resume_from, tombstone_file):
     '''Perform final cleanup steps and create the tombstone file if necessary.'''
     
     print('Scenario complete.')
@@ -198,14 +216,14 @@ def finish(agent_pid, agent_config, agent_log, topology, tombstone_file):
     wait_for_agent_goal_state(
         agent_log,
         len(topology['processes']),
-        'Waiting for cluster to shut down...')
+        'Waiting for cluster to shut down...',
+        start_from=resume_from)
 
     print('Killing the automation agent.')
-    subprocess.run(['kill', str(agent_pid)])
-    
-    with contextlib.suppress(FileNotFoundError):
-        os.remove(agent_log)
-        os.remove(agent_config)
+    kill_and_wait(agent_pid)
+   
+    os.remove(agent_log)
+    os.remove(agent_config)
     
     if tombstone_file:
         with open(tombstone_file, 'w') as f:
@@ -215,9 +233,9 @@ def main():
     args = parse_arguments()
 
     topology = TOPOLOGIES[args.topology]
-    agent_pid = start_automation_agent(args.agent_config, args.agent_log, topology)
+    agent_pid, resume_from = start_automation_agent(args.agent_config, args.agent_log, topology)
     
-    finish(agent_pid, args.agent_config, args.agent_log, topology, args.tombstone_file)
+    finish(agent_pid, args.agent_config, args.agent_log, topology, resume_from, args.tombstone_file)
     
     
 main()
