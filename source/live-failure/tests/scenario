@@ -115,6 +115,10 @@ def parse_arguments():
     '''Parse the command-line arguments passed to the script and return the args object.'''
     parser = argparse.ArgumentParser(description='Live Failure Testing Script')
     parser.add_argument(
+        'topology',
+        choices={ 'replset', 'sharded' },
+        help='which topology to use for the scenario')
+    parser.add_argument(
        '--agent-config',
        default='agent-config.json',
        help='location of the config file to be used by the automation agent')
@@ -122,11 +126,6 @@ def parse_arguments():
         '--agent-log',
         default='agent.log',
         help="location of the automation agent's log file")
-    parser.add_argument(
-        '--topology',
-        default='replset',
-        choices={ 'replset', 'sharded' },
-        help='location of the config file specifying the topology of the cluster')
     parser.add_argument(
         '--sleep',
         type=int,
