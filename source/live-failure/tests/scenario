@@ -2,114 +2,10 @@
 
 import argparse, json, os, signal, subprocess, time
 
-REPLSET_CONFIG = json.loads(
-'''
-{
-    "version": 1,
-    "processes": [
-        {
-            "name": "foo1",
-            "processType": "mongod",
-            "version": "4.0.9",
-            "featureCompatibilityVersion": "4.0",
-            "args2_6": {
-                "systemLog": {
-                    "destination": "file",
-                    "path": "/tmp/mms-automation/logs/foo1_run.log"
-                },
-                "storage": {
-                    "dbPath": "/tmp/mms-automation/data/foo1"
-                },
-                "net": { 
-                    "port": 5000
-                },
-                "replication": {
-                    "replSetName": "rs1"
-                }
-            } 
-        },
-        {
-            "name": "foo2",
-            "processType": "mongod",
-            "version": "4.0.9",
-            "featureCompatibilityVersion": "4.0",
-            "args2_6": {
-                "systemLog": {
-                    "destination": "file",
-                    "path": "/tmp/mms-automation/logs/foo2_run.log"
-                },
-                "storage": {
-                    "dbPath": "/tmp/mms-automation/data/foo2"
-                },
-                "net": { 
-                    "port": 5001
-                },
-                "replication": {
-                    "replSetName": "rs1"
-                }
-            } 
-        },
-        {
-            "name": "foo3",
-            "processType": "mongod",
-            "version": "4.0.9",
-            "featureCompatibilityVersion": "4.0",
-            "args2_6": {
-                "systemLog": {
-                    "destination": "file",
-                    "path": "/tmp/mms-automation/logs/foo3_run.log"
-                },
-                "storage": {
-                    "dbPath": "/tmp/mms-automation/data/foo3"
-                },
-                "net": { 
-                    "port": 5002
-                },
-                "replication": {
-                    "replSetName": "rs1"
-                }
-            } 
-        }
-    ],
-    "replicaSets": [
-        {
-            "_id": "rs1",
-            "members": [
-                {
-                    "_id": 0,
-                    "host": "foo1"
-                },
-                {
-                    "_id": 1,
-                    "host": "foo2"
-                },
-                {
-                    "_id": 2,
-                    "host": "foo3"
-                }
-            ]
-        }
-    ],
-    "options": {
-        "downloadBase": "/tmp/mms-automation/test/versions"
-    },
-    "mongoDbVersions": [{
-        "name": "4.0.9",
-        "builds": [{
-            "architecture": "amd64",
-            "platform": "linux", 
-            "url": "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-4.0.9.tgz",
-            "gitVersion": "fc525e2d9b0e4bceff5c2201457e564362909765",
-            "bits" : 64
-        }]
-    }]
-}
-'''
-)
+TOPOLOGIES = {}
 
-TOPOLOGIES = {
-    'replset': REPLSET_CONFIG,
-}
+with open('replset.json') as replset:
+    TOPOLOGIES['replset'] = json.load(replset)
 
 def parse_arguments():
     '''Parse the command-line arguments passed to the script and return the args object.'''
@@ -138,16 +34,19 @@ def parse_arguments():
     return parser.parse_args()
     
 def goal_state_message(num_processes):
+    '''Helper to construct the automation agent log string indicating that topology updates have 
+       finished.'''
     return f"All {num_processes} Mongo processes are in goal state"
     
 def update_topology(topology, agent_config):
+    '''Writes the topology to the agent config file, which will cause the automation agent to make
+       any changes as necessary.'''
     with open(agent_config, 'w') as agent_file:
         json.dump(topology, agent_file)
 
 def wait_for_agent_goal_state(agent_log, num_processes, msg, start_from=0):
     '''Wait for the automation agent to reach the goal state and returns the point in 
-       the file to resume from the next time this function is called.
-    '''
+       the file to resume from the next time this function is called.'''
 
     goal_state = goal_state_message(num_processes)
     curr_loc = start_from
@@ -192,6 +91,13 @@ def start_automation_agent(agent_config, agent_log, topology):
     return pid, resume_from
     
 def restart_node(sleep, agent_config, agent_log, topology, resume_from, i):
+    '''Performs a restart on node i in the cluster by writing to the automation config. The function
+       will sleep for the given duration before and after disabling the node.
+       
+       When the function returns, the node will have been fully restarted, so the topology is back
+       to the same state it was in when the function was called.
+       
+       Returns the point in the log file to resume from.'''
     process = topology['processes'][i] 
     
     time.sleep(sleep)
@@ -218,6 +124,8 @@ def restart_node(sleep, agent_config, agent_log, topology, resume_from, i):
         
     
 def restart_each_node(sleep, agent_config, agent_log, topology, resume_from):
+    '''Restarts each node in the cluster individually (with sleeps for the given duration 
+       interleaved) and returns the point in the log file to resume from.'''
     for i in range(len(topology['processes'])):
         resume_from = restart_node(sleep, agent_config, agent_log, topology, resume_from, i)                   
     
@@ -226,6 +134,7 @@ def restart_each_node(sleep, agent_config, agent_log, topology, resume_from):
     return resume_from
     
 def kill_and_wait(pid):
+    '''Kills the subprocess with the given pid and waits for it to terminate.'''
     os.kill(pid, signal.SIGINT)
     
     while True:
