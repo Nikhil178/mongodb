@@ -191,6 +191,40 @@ def start_automation_agent(agent_config, agent_log, topology):
     
     return pid, resume_from
     
+def restart_node(sleep, agent_config, agent_log, topology, resume_from, i):
+    process = topology['processes'][i] 
+    
+    time.sleep(sleep)
+    
+    process['disabled'] = True
+    update_topology(topology, agent_config)
+    resume_from = wait_for_agent_goal_state(
+                      agent_log, 
+                      len(topology['processes']), 
+                      f"shutting down node #{i}...", 
+                      resume_from)
+                    
+    time.sleep(sleep) 
+    
+    del process['disabled']
+    update_topology(topology, agent_config)
+    resume_from = wait_for_agent_goal_state(
+                      agent_log,
+                      len(topology['processes']),
+                      f"starting up node #{i}...",
+                      resume_from)
+                      
+    return resume_from
+        
+    
+def restart_each_node(sleep, agent_config, agent_log, topology, resume_from):
+    for i in range(len(topology['processes'])):
+        resume_from = restart_node(sleep, agent_config, agent_log, topology, resume_from, i)                   
+    
+    time.sleep(sleep)
+                        
+    return resume_from
+    
 def kill_and_wait(pid):
     os.kill(pid, signal.SIGINT)
     
@@ -233,6 +267,12 @@ def main():
 
     topology = TOPOLOGIES[args.topology]
     agent_pid, resume_from = start_automation_agent(args.agent_config, args.agent_log, topology)
+    resume_from = restart_each_node(
+                    args.sleep, 
+                    args.agent_config, 
+                    args.agent_log, 
+                    topology, 
+                    resume_from)
     
     finish(agent_pid, args.agent_config, args.agent_log, topology, resume_from, args.tombstone_file)
     
