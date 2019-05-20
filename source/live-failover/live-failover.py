@@ -81,8 +81,7 @@ def update_agent_topology(topology, agent_config):
 
 def wait_for_agent_goal_state(agent_log, num_processes, msg, start_from=0):
     '''Wait for the automation agent to reach the goal
-       state and returns the point in the file to resume
-       from the next time this function is called.'''
+       state.'''
 
     goal_state = goal_state_message(num_processes)
     config_err_msg = "Error reading cluster config"
@@ -117,22 +116,21 @@ def wait_for_agent_goal_state(agent_log, num_processes, msg, start_from=0):
 
 def load_state_file (agent_log, agent_config):
     '''Reads stored script data from a file on disk.
-       Returns the agent pid and the resume_from point.'''
+       Returns the agent pid.'''
     data = load_json ("tmp_scenario_state.json")
     if agent_log != data["agent_log"]:
         raise Exception("must use consistent agent logfile")
     if agent_config != data["agent_config"]:
         raise Exception("must use consistent agent config")
 
-    return data["agent_pid"], data["resume_from"], data["initial_topology"]
+    return data["agent_pid"], data["initial_topology"]
 
-def save_state_to_file (topology, agent_log, agent_config, agent_pid, resume_from):
+def save_state_to_file (topology, agent_log, agent_config, agent_pid):
     '''Writes necessary state to a temporary file on disk.'''
     data = {
         "agent_log" : agent_log,
         "agent_config" : agent_config,
         "agent_pid" : agent_pid,
-        "resume_from" : resume_from,
         "initial_topology": topology,
         }
     write_json (data, "tmp_scenario_state.json")
@@ -146,8 +144,7 @@ def start_automation_agent(agent_config, agent_log, topology):
     '''Initialize the automation agent and wait for
        the initial topology to be ready.
        
-       Returns the automation agent PID and the location
-       in the agent log file to resume from.'''
+       Returns the automation agent PID.'''
        
     print('Launching the automation agent...')
     sys.stdout.flush()
@@ -167,19 +164,19 @@ def start_automation_agent(agent_config, agent_log, topology):
                     ['./mongodb-mms-automation-agent', '-cluster', agent_config], 
                     stdout=log_file,
                     stderr=subprocess.STDOUT,
-                    bufsize=1,
+                    bufsize=0,
                     universal_newlines=True).pid
 
     print('Waiting for agent to reach goal state...')
 
-    resume_from = wait_for_agent_goal_state(
-                      agent_log, 
-                      len(topology['processes']), 
-                      'Waiting for cluster to come online...')
+    wait_for_agent_goal_state(
+        agent_log, 
+        len(topology['processes']), 
+        'Waiting for cluster to come online...')
     
-    return pid, resume_from
-    
-def restart_node(sleep, agent_config, agent_log, topology, resume_from, i):
+    return pid    
+
+def restart_node(sleep, agent_config, agent_log, topology, i):
     '''Performs a restart on node i in the cluster by
        writing to the automation config to disable the
        node. This function will sleep for the given duration
@@ -187,45 +184,41 @@ def restart_node(sleep, agent_config, agent_log, topology, resume_from, i):
 
        When this function returns, the node will have been
        fully restarted, so the topology is back to the same
-       state it was in when the function was called.
-       
-       Returns the point in the log file to resume from.'''
+       state it was in when the function was called.'''
     process = topology['processes'][i]
     print (f"Shutting down node {process['name']}")
     process['disabled'] = True
+    
+    read_from = os.path.getsize(agent_log)
     update_agent_topology(topology, agent_config)
-    resume_from = wait_for_agent_goal_state(
-                      agent_log, 
-                      len(topology['processes']), 
-                      f"shutting down node #{i}...", 
-                      resume_from)
+    wait_for_agent_goal_state(
+        agent_log, 
+        len(topology['processes']), 
+        f"shutting down node #{i}...", 
+        read_from)
 
     print ("Waiting...")
     time.sleep(sleep) 
 
     print (f"Starting up node {process['name']}")
     del process['disabled']
+    read_from = os.path.getsize(agent_log)
     update_agent_topology(topology, agent_config)
-    resume_from = wait_for_agent_goal_state(
-                      agent_log,
-                      len(topology['processes']),
-                      f"starting up node #{i}...",
-                      resume_from)
-                      
-    return resume_from
+    wait_for_agent_goal_state(
+        agent_log,
+        len(topology['processes']),
+        f"starting up node #{i}...",
+        read_from)
         
     
-def restart_each_node(sleep, agent_config, agent_log, topology, resume_from):
+def restart_each_node(sleep, agent_config, agent_log, topology):
     '''Restarts each node in the cluster individually
-       (with sleeps for the given duration interleaved)
-       and returns the point in the log file to resume from.'''
+       (with sleeps for the given duration interleaved).'''
     # TODO: this doesn't take node ordering into consideration
     # for example, we should probably do the secondaries first,
     # then the primary, to mimic Atlas maintenance.
     for i in range(len(topology['processes'])):
-        resume_from = restart_node(sleep, agent_config, agent_log, topology, resume_from, i)
-                        
-    return resume_from
+        restart_node(sleep, agent_config, agent_log, topology, i)
     
 def kill_and_wait(pid):
     '''Kills the subprocess with the given pid and waits
@@ -256,7 +249,7 @@ def cleanup_agent(agent_pid, agent_log, agent_config):
     os.remove(agent_config)
 
 
-def finish(agent_pid, agent_config, agent_log, topology, resume_from, tombstone_file):
+def finish(agent_pid, agent_config, agent_log, topology, tombstone_file):
     '''Perform final cleanup steps and create the tombstone file if necessary.'''
     
     print('Scenario complete.')
@@ -264,12 +257,13 @@ def finish(agent_pid, agent_config, agent_log, topology, resume_from, tombstone_
     for process in topology['processes']:
         process['disabled'] = True
     
+    read_from = os.path.getsize(agent_log)
     update_agent_topology(topology, agent_config) 
     wait_for_agent_goal_state(
         agent_log,
         len(topology['processes']),
         'Waiting for cluster to shut down...',
-        start_from=resume_from)
+        read_from)
 
     cleanup_agent (agent_pid, agent_log, agent_config)
     if tombstone_file:
@@ -305,7 +299,7 @@ def main():
         if args.command == "start":
             print (f"Starting cluster for config {args.topology}...")
             topology = read_topology(args.topology)
-            agent_pid, resume_from = start_automation_agent (
+            agent_pid = start_automation_agent (
                 args.agent_config,
                 args.agent_log,
                 topology)
@@ -315,35 +309,32 @@ def main():
             save_state_to_file (args.topology,
                                 args.agent_log,
                                 args.agent_config,
-                                agent_pid,
-                                resume_from)
+                                agent_pid)
 
         elif args.command == "scenario":
             print (f"Running scenario for config {args.agent_config} with downtime {args.sleep} seconds")
                    
             try:
-                agent_pid, resume_from, topology_file = load_state_file (args.agent_log,
+                agent_pid, topology_file = load_state_file (args.agent_log,
                                                             args.agent_config)
             except FileNotFoundError:
                raise Exception('unable to run scenario; agent is not running') 
 
             topology = read_topology(topology_file)            
-            resume_from = restart_each_node(
+            restart_each_node(
                 args.sleep, 
                 args.agent_config, 
                 args.agent_log, 
-                topology, 
-                resume_from)
+                topology)
             save_state_to_file (topology_file,
                                 args.agent_log,
                                 args.agent_config,
-                                agent_pid,
-                                resume_from)
+                                agent_pid)
 
         elif args.command == "stop":
             print (f"Shutting down cluster for config {args.agent_config}")
             try:
-                agent_pid, resume_from, topology_file = load_state_file (args.agent_log,
+                agent_pid, topology_file = load_state_file (args.agent_log,
                                                             args.agent_config)
             except FileNotFoundError:
                raise Exception('unable to shut down cluster; agent is not running') 
@@ -353,7 +344,6 @@ def main():
                    args.agent_config,
                    args.agent_log,
                    topology,
-                   resume_from,
                    args.tombstone_file)
             cleanup_state_file ()
 
