@@ -28,6 +28,9 @@ def parse_arguments():
     parser.add_argument(
         '--tombstone-file',
         help='create a tombstone file at the given path upon exit')
+    parser.add_argument(
+        '--debug',
+        help='print stack trace if an error occurs')
     
     return parser.parse_args()
 
@@ -80,12 +83,12 @@ def wait_for_agent_goal_state(agent_log, num_processes, msg, start_from=0):
 
             if duplicate_agent_msg in new_content:
                 print ("Error: cannot start agent. "
-                       "Is the automation agent already running?")
+                       "Is the automation agent already running?", file=sys.stderr)
                 return -1
 
             if config_err_msg in new_content:
                 print ("Error: could not load cluster config. "
-                       "Examine agent.log for more information.")
+                       "Examine agent.log for more information.", file=sys.stderr)
                 return -1
             
         time.sleep(2)
@@ -300,8 +303,13 @@ def main():
         elif args.command == "scenario":
             print ("Running scenario for config " + args.topology + 
                    "with downtime " + str(args.sleep) + " seconds")
-            agent_pid, resume_from = load_state_file (args.agent_log,
-                                                      args.agent_config)
+                   
+            try:
+                agent_pid, resume_from = load_state_file (args.agent_log,
+                                                            args.agent_config)
+            except FileNotFoundError:
+               raise Exception('unable to run scenario; agent is not running') 
+
             topology = read_topology(args.topology)            
             resume_from = restart_each_node(
                 args.sleep, 
@@ -316,8 +324,12 @@ def main():
 
         elif args.command == "stop":
             print ("Shutting down cluster for config {args.topology}")
-            agent_pid, resume_from = load_state_file (args.agent_log,
-                                                      args.agent_config)
+            try:
+                agent_pid, resume_from = load_state_file (args.agent_log,
+                                                            args.agent_config)
+            except FileNotFoundError:
+               raise Exception('unable to shut down cluster; agent is not running') 
+                
             topology = read_topology(args.topology)
             finish(agent_pid,
                    args.agent_config,
@@ -334,14 +346,17 @@ def main():
 
     except Exception as e:
         print ("Encountered an exception")
-        print (e)
-        traceback.print_exc()
+        print (f"    {e}")
+       
+        if args.debug:
+            traceback.print_exc()
+       
         if agent_pid > 0:
             cleanup_agent (agent_pid, args.agent_log, args.agent_config)
         if args.tombstone_file:
             create_tombstone (args.tombstone_file, "Exception")
 
-        sys.exit(1);
+        sys.exit(1)
 
     if args.tombstone_file:
         create_tombstone (args.tombstone_file, "Command complete")
