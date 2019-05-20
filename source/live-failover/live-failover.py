@@ -5,33 +5,55 @@ import argparse, json, os, signal, subprocess, sys, time, traceback
 def parse_arguments():
     '''Parse the command-line arguments passed to the script and return the args object.'''
     parser = argparse.ArgumentParser(description='Live Failover Testing Script')
-    parser.add_argument(
-        'command',
-        choices=['start', 'scenario', 'stop'],
-        help='the command to run: start, scenario, or stop.')
-    parser.add_argument(
+    subparsers = parser.add_subparsers(title='command', dest='command', help='sub-command help')
+    
+    start = subparsers.add_parser('start', 
+        description='start the automation agent and initialize the cluster',
+        help='start the automation agent and initialize the cluster')
+    scenario = subparsers.add_parser('scenario',
+        description='run the scenario on the already-started cluster',
+        help='run the scenario on the already-started cluster')
+    stop = subparsers.add_parser('stop',
+        description='stop the automation agent',
+        help='stop the automation agent')
+    
+    start.add_argument(
         'topology',
         help='the topology JSON file to use for the scenario')
-    parser.add_argument(
-       '--agent-config',
-       default='agent-config.json',
-       help='location of the config file to be used by the automation agent')
-    parser.add_argument(
-        '--agent-log',
-        default='agent.log',
-        help="location of the automation agent's log file")
-    parser.add_argument(
+        
+    for p in [start, scenario, stop]:
+        p.add_argument(
+            '--agent-config',
+            default='agent-config.json',
+            help='location of the config file to be used by the automation agent')
+            
+    for p in [start, scenario, stop]:
+        p.add_argument(
+            '--agent-log',
+            default='agent.log',
+            help="location of the automation agent's log file")
+
+    scenario.add_argument(
         '--sleep',
         type=int,
         default=3,
         help='duration (in seconds) to sleep between node restarts')
-    parser.add_argument(
-        '--tombstone-file',
-        help='create a tombstone file at the given path upon exit')
-    parser.add_argument(
-        '--debug',
-        action='store_true',
-        help='print stack trace if an error occurs')
+        
+    for p in [start, scenario, stop]:
+        p.add_argument(
+            '--tombstone-file',
+            help='create a tombstone file at the given path upon exit')
+
+    for p in [start, scenario, stop]:
+        p.add_argument(
+            '--debug',
+            action='store_true',
+            help='print stack trace if an error occurs')
+   
+    # Print help and exit if a command is not specified.
+    if len(sys.argv) < 2:
+        parser.print_help()
+        sys.exit(0)
     
     return parser.parse_args()
 
@@ -49,7 +71,7 @@ def goal_state_message(num_processes):
     '''Helper to construct the automation agent log
        string indicating that topology updates have 
        finished.'''
-    return "All {num_processes} Mongo processes are in goal state"
+    return f"All {num_processes} Mongo processes are in goal state"
     
 def update_agent_topology(topology, agent_config):
     '''Writes the topology to the agent config file,
@@ -66,9 +88,6 @@ def wait_for_agent_goal_state(agent_log, num_processes, msg, start_from=0):
     config_err_msg = "Error reading cluster config"
     duplicate_agent_msg = "Is there another automation agent"
     curr_loc = start_from
-
-    # TODO remove this
-    return curr_loc;
 
     print(f"{msg}...")
 
@@ -105,15 +124,16 @@ def load_state_file (agent_log, agent_config):
     if agent_config != data["agent_config"]:
         raise Exception("must use consistent agent config")
 
-    return data["agent_pid"], data["resume_from"]
+    return data["agent_pid"], data["resume_from"], data["initial_topology"]
 
-def save_state_to_file (agent_log, agent_config, agent_pid, resume_from):
+def save_state_to_file (topology, agent_log, agent_config, agent_pid, resume_from):
     '''Writes necessary state to a temporary file on disk.'''
     data = {
         "agent_log" : agent_log,
         "agent_config" : agent_config,
         "agent_pid" : agent_pid,
-        "resume_from" : resume_from
+        "resume_from" : resume_from,
+        "initial_topology": topology,
         }
     write_json (data, "tmp_scenario_state.json")
 
@@ -147,7 +167,7 @@ def start_automation_agent(agent_config, agent_log, topology):
                     ['./mongodb-mms-automation-agent', '-cluster', agent_config], 
                     stdout=log_file,
                     stderr=subprocess.STDOUT,
-                    bufsize=-1,
+                    bufsize=1,
                     universal_newlines=True).pid
 
     print('Waiting for agent to reach goal state...')
@@ -177,7 +197,7 @@ def restart_node(sleep, agent_config, agent_log, topology, resume_from, i):
     resume_from = wait_for_agent_goal_state(
                       agent_log, 
                       len(topology['processes']), 
-                      "shutting down node #{i}...", 
+                      f"shutting down node #{i}...", 
                       resume_from)
 
     print ("Waiting...")
@@ -189,7 +209,7 @@ def restart_node(sleep, agent_config, agent_log, topology, resume_from, i):
     resume_from = wait_for_agent_goal_state(
                       agent_log,
                       len(topology['processes']),
-                      "starting up node #{i}...",
+                      f"starting up node #{i}...",
                       resume_from)
                       
     return resume_from
@@ -277,6 +297,7 @@ def main():
        the automation agent.'''
     try:
         args = parse_arguments()
+        
         agent_pid = -1
 
         print (f"Running command '{args.command}'")
@@ -291,41 +312,43 @@ def main():
 
             if agent_pid < 0:
                 raise Exception("Could not start agent");
-            save_state_to_file (args.agent_log,
+            save_state_to_file (args.topology,
+                                args.agent_log,
                                 args.agent_config,
                                 agent_pid,
                                 resume_from)
 
         elif args.command == "scenario":
-            print (f"Running scenario for config {args.topology} with downtime {args.sleep} seconds")
+            print (f"Running scenario for config {args.agent_config} with downtime {args.sleep} seconds")
                    
             try:
-                agent_pid, resume_from = load_state_file (args.agent_log,
+                agent_pid, resume_from, topology_file = load_state_file (args.agent_log,
                                                             args.agent_config)
             except FileNotFoundError:
                raise Exception('unable to run scenario; agent is not running') 
 
-            topology = read_topology(args.topology)            
+            topology = read_topology(topology_file)            
             resume_from = restart_each_node(
                 args.sleep, 
                 args.agent_config, 
                 args.agent_log, 
                 topology, 
                 resume_from)
-            save_state_to_file (args.agent_log,
+            save_state_to_file (topology_file,
+                                args.agent_log,
                                 args.agent_config,
                                 agent_pid,
                                 resume_from)
 
         elif args.command == "stop":
-            print (f"Shutting down cluster for config {args.topology}")
+            print (f"Shutting down cluster for config {args.agent_config}")
             try:
-                agent_pid, resume_from = load_state_file (args.agent_log,
+                agent_pid, resume_from, topology_file = load_state_file (args.agent_log,
                                                             args.agent_config)
             except FileNotFoundError:
                raise Exception('unable to shut down cluster; agent is not running') 
                
-            topology = read_topology(args.topology)
+            topology = read_topology(topology_file)
             finish(agent_pid,
                    args.agent_config,
                    args.agent_log,
