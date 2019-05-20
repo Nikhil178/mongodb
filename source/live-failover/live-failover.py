@@ -30,6 +30,7 @@ def parse_arguments():
         help='create a tombstone file at the given path upon exit')
     parser.add_argument(
         '--debug',
+        action='store_true',
         help='print stack trace if an error occurs')
     
     return parser.parse_args()
@@ -69,7 +70,7 @@ def wait_for_agent_goal_state(agent_log, num_processes, msg, start_from=0):
     # TODO remove this
     return curr_loc;
 
-    print(msg + "...")
+    print(f"{msg}...")
 
     while True:        
         with open(agent_log) as log_file:
@@ -170,7 +171,7 @@ def restart_node(sleep, agent_config, agent_log, topology, resume_from, i):
        
        Returns the point in the log file to resume from.'''
     process = topology['processes'][i]
-    print ("Shutting down node " + process["name"])
+    print (f"Shutting down node {process['name']}")
     process['disabled'] = True
     update_agent_topology(topology, agent_config)
     resume_from = wait_for_agent_goal_state(
@@ -182,7 +183,7 @@ def restart_node(sleep, agent_config, agent_log, topology, resume_from, i):
     print ("Waiting...")
     time.sleep(sleep) 
 
-    print ("Starting up node " + process["name"])
+    print (f"Starting up node {process['name']}")
     del process['disabled']
     update_agent_topology(topology, agent_config)
     resume_from = wait_for_agent_goal_state(
@@ -274,24 +275,19 @@ def main():
        stop - Use the automation agent to stop the
        cluster specified by args.topology, then stop
        the automation agent.'''
-    print ("Python script")
     try:
         args = parse_arguments()
         agent_pid = -1
 
-        print ("Running command '" + args.command + "'")
+        print (f"Running command '{args.command}'")
 
         if args.command == "start":
-            print ("Starting cluster for config {args.topology}")
+            print (f"Starting cluster for config {args.topology}...")
             topology = read_topology(args.topology)
             agent_pid, resume_from = start_automation_agent (
                 args.agent_config,
                 args.agent_log,
                 topology)
-
-
-
-
 
             if agent_pid < 0:
                 raise Exception("Could not start agent");
@@ -301,8 +297,7 @@ def main():
                                 resume_from)
 
         elif args.command == "scenario":
-            print ("Running scenario for config " + args.topology + 
-                   "with downtime " + str(args.sleep) + " seconds")
+            print (f"Running scenario for config {args.topology} with downtime {args.sleep} seconds")
                    
             try:
                 agent_pid, resume_from = load_state_file (args.agent_log,
@@ -323,13 +318,13 @@ def main():
                                 resume_from)
 
         elif args.command == "stop":
-            print ("Shutting down cluster for config {args.topology}")
+            print (f"Shutting down cluster for config {args.topology}")
             try:
                 agent_pid, resume_from = load_state_file (args.agent_log,
                                                             args.agent_config)
             except FileNotFoundError:
                raise Exception('unable to shut down cluster; agent is not running') 
-                
+               
             topology = read_topology(args.topology)
             finish(agent_pid,
                    args.agent_config,
@@ -342,7 +337,7 @@ def main():
         else:
             raise Exception("Unrecognized state")
 
-        print ("'" + args.command + "' command complete.")
+        print (f"'{args.command}' command complete.")
 
     except Exception as e:
         print ("Encountered an exception")
