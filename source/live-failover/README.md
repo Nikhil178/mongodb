@@ -7,6 +7,13 @@ In this directory, you will find a script called ``live-failover.py``. This scri
 
 In the ``/configs`` directory you will find a number of json files. ``live-failover.py`` should be run one time for each config file in the ``/configs`` directory.  While ``live-failover.py`` is running, the driver should run specified workloads against the cluster described in the json file (see spec, TODO link).
 
+Requirements
+------------
+
+The ``live-failover.py`` script requires python 3.
+
+The script also requires that the binary for the automation agent be in an executable called ``mongodb-mms-automation-agent`` in the working directory.
+
 Running the live-failover.py script
 -----------------------------------
 
