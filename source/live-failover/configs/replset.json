@@ -87,14 +87,24 @@
     "options": {
         "downloadBase": "/tmp/mms-automation/test/versions"
     },
-    "mongoDbVersions": [{
-        "name": "4.0.9",
-        "builds": [{
-            "architecture": "amd64",
-            "platform": "linux", 
-            "url": "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-4.0.9.tgz",
-            "gitVersion": "fc525e2d9b0e4bceff5c2201457e564362909765",
-            "bits" : 64
-        }]
-    }]
+    "mongoDbVersions": [
+	{
+	    "name": "4.0.9",
+	    "builds": [
+		{
+		    "platform": "osx",
+		    "gitVersion": "fc525e2d9b0e4bceff5c2201457e564362909765",
+		    "bits": 64,
+		    "url" : "http://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-4.0.9.tgz"
+		},
+		{
+		    "architecture": "amd64",
+		    "platform": "linux",
+		    "url": "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-4.0.9.tgz",
+		    "gitVersion": "fc525e2d9b0e4bceff5c2201457e564362909765",
+		    "bits" : 64
+		}
+	    ]
+	}
+    ]
 }
