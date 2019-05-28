@@ -1,0 +1,408 @@
+{
+    "version": 1,
+    "processes": [
+        {
+            "name": "rs1-1",
+            "processType": "mongod",
+            "version": "4.0.9",
+            "featureCompatibilityVersion": "4.0",
+            "args2_6": {
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/rs1-1_run.log"
+                },
+                "storage": {
+                    "dbPath": "/tmp/mms-automation/data/rs1-1"
+                },
+                "net": { 
+                    "port": 5000
+                },
+                "replication": {
+                    "replSetName": "rs1"
+                }
+            } 
+        },
+        {
+            "name": "rs1-2",
+            "processType": "mongod",
+            "version": "4.0.9",
+            "featureCompatibilityVersion": "4.0",
+            "args2_6": {
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/rs1-2_run.log"
+                },
+                "storage": {
+                    "dbPath": "/tmp/mms-automation/data/rs1-2"
+                },
+                "net": { 
+                    "port": 5001
+                },
+                "replication": {
+                    "replSetName": "rs1"
+                }
+            } 
+        },
+        {
+            "name": "rs1-3",
+            "processType": "mongod",
+            "version": "4.0.9",
+            "featureCompatibilityVersion": "4.0",
+            "args2_6": {
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/rs1-3_run.log"
+                },
+                "storage": {
+                    "dbPath": "/tmp/mms-automation/data/rs1-3"
+                },
+                "net": { 
+                    "port": 5002
+                },
+                "replication": {
+                    "replSetName": "rs1"
+                }
+            } 
+        },
+	{
+            "name": "rs2-1",
+            "processType": "mongod",
+            "version": "4.0.9",
+            "featureCompatibilityVersion": "4.0",
+            "args2_6": {
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/rs2-1_run.log"
+                },
+                "storage": {
+                    "dbPath": "/tmp/mms-automation/data/rs2-1"
+                },
+                "net": { 
+                    "port": 5003
+                },
+                "replication": {
+                    "replSetName": "rs2"
+                }
+            } 
+        },
+        {
+            "name": "rs2-2",
+            "processType": "mongod",
+            "version": "4.0.9",
+            "featureCompatibilityVersion": "4.0",
+            "args2_6": {
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/rs2-2_run.log"
+                },
+                "storage": {
+                    "dbPath": "/tmp/mms-automation/data/rs2-2"
+                },
+                "net": { 
+                    "port": 5004
+                },
+                "replication": {
+                    "replSetName": "rs2"
+                }
+            } 
+        },
+        {
+            "name": "rs2-3",
+            "processType": "mongod",
+            "version": "4.0.9",
+            "featureCompatibilityVersion": "4.0",
+            "args2_6": {
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/rs2-3_run.log"
+                },
+                "storage": {
+                    "dbPath": "/tmp/mms-automation/data/rs2-3"
+                },
+                "net": { 
+                    "port": 5005
+                },
+                "replication": {
+                    "replSetName": "rs2"
+                }
+            }
+        },
+	{
+            "name": "rs3-1",
+            "processType": "mongod",
+            "version": "4.0.9",
+            "featureCompatibilityVersion": "4.0",
+            "args2_6": {
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/rs3-1_run.log"
+                },
+                "storage": {
+                    "dbPath": "/tmp/mms-automation/data/rs3-1"
+                },
+                "net": { 
+                    "port": 5006
+                },
+                "replication": {
+                    "replSetName": "rs3"
+                }
+            } 
+        },
+        {
+            "name": "rs3-2",
+            "processType": "mongod",
+            "version": "4.0.9",
+            "featureCompatibilityVersion": "4.0",
+            "args2_6": {
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/rs3-2_run.log"
+                },
+                "storage": {
+                    "dbPath": "/tmp/mms-automation/data/rs3-2"
+                },
+                "net": { 
+                    "port": 5007
+                },
+                "replication": {
+                    "replSetName": "rs3"
+                }
+            } 
+        },
+        {
+            "name": "rs3-3",
+            "processType": "mongod",
+            "version": "4.0.9",
+            "featureCompatibilityVersion": "4.0",
+            "args2_6": {
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/rs3-3_run.log"
+                },
+                "storage": {
+                    "dbPath": "/tmp/mms-automation/data/rs3-3"
+                },
+                "net": { 
+                    "port": 5008
+                },
+                "replication": {
+                    "replSetName": "rs3"
+                }
+            }
+        },
+	{
+            "name": "config1",
+            "processType": "mongod",
+            "version": "4.0.9",
+            "featureCompatibilityVersion": "4.0",
+            "args2_6": {
+                "sharding": {
+                    "clusterRole": "configsvr"
+                },
+                "replication" : {
+                    "replSetName" : "csrs_set"
+                },
+                "storage": {
+                    "dbPath": "/tmp/mms-automation/data/config1"
+                },
+                "net": {
+                    "port": 5009
+                },
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/config1_run.log"
+                }
+            }
+        },
+        {
+            "name": "config2",
+            "processType": "mongod",
+            "version": "4.0.9",
+            "featureCompatibilityVersion": "4.0",
+            "args2_6": {
+                "sharding": {
+                    "clusterRole": "configsvr"
+                },
+                "replication" : {
+                    "replSetName" : "csrs_set"
+                },
+                "storage": {
+                    "dbPath": "/tmp/mms-automation/data/config2"
+                },
+                "net": {
+                    "port": 5010
+                },
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/config2_run.log"
+                }
+            }
+        },
+        {
+            "name": "config3",
+            "processType": "mongod",
+            "version": "4.0.9",
+            "featureCompatibilityVersion": "4.0",
+            "args2_6": {
+                "sharding": {
+                    "clusterRole": "configsvr"
+                },
+                "replication" : {
+                    "replSetName" : "csrs_set"
+                },
+                "storage": {
+                    "dbPath": "/tmp/mms-automation/data/config3"
+                },
+                "net": {
+                    "port": 5011
+                },
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/config3_run.log"
+                }
+            }
+        },
+        {
+            "name": "router1",
+            "cluster": "cluster1",
+            "processType": "mongos",
+            "version": "4.0.9",
+            "featureCompatibilityVersion": "4.0",
+            "args2_6": {
+                "net": {
+                    "port": 5012
+                },
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/mongos1_run.log"
+                }
+            }
+        },
+        {
+            "name": "router2",
+            "cluster": "cluster1",
+            "processType": "mongos",
+            "version": "4.0.9",
+            "featureCompatibilityVersion": "4.0",
+            "args2_6": {
+                "net": {
+                    "port": 5013
+                },
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/mongos2_run.log"
+                }
+            }
+        },
+	{
+            "name": "router3",
+            "cluster": "cluster1",
+            "processType": "mongos",
+            "version": "4.0.9",
+            "featureCompatibilityVersion": "4.0",
+            "args2_6": {
+                "net": {
+                    "port": 5014
+                },
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/mongos3_run.log"
+                }
+            }
+        }
+    ],
+    "replicaSets": [
+        {
+            "_id": "rs1",
+            "members": [
+                {
+                    "_id": 0,
+                    "host": "rs1-1"
+                },
+                {
+                    "_id": 1,
+                    "host": "rs1-2"
+                },
+                {
+                    "_id": 2,
+                    "host": "rs1-3"
+                }
+            ]
+        },
+	{
+            "_id": "rs2",
+            "members": [
+                {
+                    "_id": 0,
+                    "host": "rs2-1"
+                },
+                {
+                    "_id": 1,
+                    "host": "rs2-2"
+                },
+                {
+                    "_id": 2,
+                    "host": "rs2-3"
+                }
+            ]
+        },
+	{
+            "_id": "rs3",
+            "members": [
+                {
+                    "_id": 0,
+                    "host": "rs3-1"
+                },
+                {
+                    "_id": 1,
+                    "host": "rs3-2"
+                },
+                {
+                    "_id": 2,
+                    "host": "rs3-3"
+                }
+            ]
+        },
+	{
+            "_id" : "csrs_set",
+            "configsvr" : true,
+            "members" : [
+                {
+                    "_id" : 0,
+                    "host" : "config1"
+                },
+                {
+                    "_id" : 1,
+                    "host" : "config2"
+                },
+                {
+                    "_id" : 2,
+                    "host" : "config3"
+                }
+            ]
+        }
+    ],
+    "options": {
+        "downloadBase": "/tmp/mms-automation/test/versions"
+    },
+    "mongoDbVersions": [
+	{
+	    "name": "4.0.9",
+	    "builds": [
+		{
+		    "platform": "osx",
+		    "gitVersion": "fc525e2d9b0e4bceff5c2201457e564362909765",
+		    "bits": 64,
+		    "url" : "http://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-4.0.9.tgz"
+		},
+		{
+		    "architecture": "amd64",
+		    "platform": "linux",
+		    "url": "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-4.0.9.tgz",
+		    "gitVersion": "fc525e2d9b0e4bceff5c2201457e564362909765",
+		    "bits" : 64
+		}
+	    ]
+	}
+    ]
+}
