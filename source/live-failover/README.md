@@ -21,15 +21,15 @@ The ``live-failover.py`` script operates in three stages represented by three di
 
 * `start` - launch a mongo cluster matching the given config file (via the automation agent):
 
-   python live-failover.py start <path/to/config/file>
+   ``python live-failover.py start <path/to/config/file>``
 
 * `scenario` - put the cluster through a series of restarts (via the automation agent) using a simulated server downtime of T seconds:
 
-   python live-failover.py scenario --sleep T
+   ``python live-failover.py scenario --sleep T``
 
 * `stop` - spin down the cluster (and the automation agent)
 
-   python live-failover.py stop
+   ``python live-failover.py stop``
 
 
 Use `--help` for more information.
