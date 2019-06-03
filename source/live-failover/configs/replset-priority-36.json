@@ -1,0 +1,113 @@
+{
+    "version": 1,
+    "processes": [
+        {
+            "name": "foo1",
+            "processType": "mongod",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
+            "args2_6": {
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/foo1_run.log"
+                },
+                "storage": {
+                    "dbPath": "/tmp/mms-automation/data/foo1"
+                },
+                "net": { 
+                    "port": 5000
+                },
+                "replication": {
+                    "replSetName": "rs1"
+                }
+            } 
+        },
+        {
+            "name": "foo2",
+            "processType": "mongod",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
+            "args2_6": {
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/foo2_run.log"
+                },
+                "storage": {
+                    "dbPath": "/tmp/mms-automation/data/foo2"
+                },
+                "net": { 
+                    "port": 5001
+                },
+                "replication": {
+                    "replSetName": "rs1"
+                }
+            } 
+        },
+        {
+            "name": "foo3",
+            "processType": "mongod",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
+            "args2_6": {
+                "systemLog": {
+                    "destination": "file",
+                    "path": "/tmp/mms-automation/logs/foo3_run.log"
+                },
+                "storage": {
+                    "dbPath": "/tmp/mms-automation/data/foo3"
+                },
+                "net": { 
+                    "port": 5002
+                },
+                "replication": {
+                    "replSetName": "rs1"
+                }
+            } 
+        }
+    ],
+    "replicaSets": [
+        {
+            "_id": "rs1",
+            "members": [
+                {
+                    "_id": 0,
+                    "host": "foo1",
+		    "priority": 2
+                },
+                {
+                    "_id": 1,
+                    "host": "foo2",
+		    "priority": 1
+                },
+                {
+                    "_id": 2,
+                    "host": "foo3",
+		    "priority": 1
+                }
+            ]
+        }
+    ],
+    "options": {
+        "downloadBase": "/tmp/mms-automation/test/versions"
+    },
+    "mongoDbVersions": [
+	{
+	    "name": "3.6.12",
+	    "builds": [
+		{
+		    "platform": "osx",
+		    "gitVersion": "c2b9acad0248ca06b14ef1640734b5d0595b55f1",
+		    "bits": 64,
+		    "url" : "http://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-3.6.12.tgz"
+		},
+		{
+		    "architecture": "amd64",
+		    "platform": "linux", 
+		    "url": "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-3.6.12.tgz",
+		    "gitVersion": "c2b9acad0248ca06b14ef1640734b5d0595b55f1",
+		    "bits" : 64
+		}
+	    ]
+	}
+    ]
+}

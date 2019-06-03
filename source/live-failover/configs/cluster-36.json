@@ -4,8 +4,8 @@
         {
             "name": "rs1-1",
             "processType": "mongod",
-            "version": "4.0.9",
-            "featureCompatibilityVersion": "4.0",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
             "args2_6": {
                 "systemLog": {
                     "destination": "file",
@@ -25,8 +25,8 @@
         {
             "name": "rs1-2",
             "processType": "mongod",
-            "version": "4.0.9",
-            "featureCompatibilityVersion": "4.0",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
             "args2_6": {
                 "systemLog": {
                     "destination": "file",
@@ -46,8 +46,8 @@
         {
             "name": "rs1-3",
             "processType": "mongod",
-            "version": "4.0.9",
-            "featureCompatibilityVersion": "4.0",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
             "args2_6": {
                 "systemLog": {
                     "destination": "file",
@@ -67,8 +67,8 @@
 	{
             "name": "rs2-1",
             "processType": "mongod",
-            "version": "4.0.9",
-            "featureCompatibilityVersion": "4.0",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
             "args2_6": {
                 "systemLog": {
                     "destination": "file",
@@ -88,8 +88,8 @@
         {
             "name": "rs2-2",
             "processType": "mongod",
-            "version": "4.0.9",
-            "featureCompatibilityVersion": "4.0",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
             "args2_6": {
                 "systemLog": {
                     "destination": "file",
@@ -109,8 +109,8 @@
         {
             "name": "rs2-3",
             "processType": "mongod",
-            "version": "4.0.9",
-            "featureCompatibilityVersion": "4.0",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
             "args2_6": {
                 "systemLog": {
                     "destination": "file",
@@ -130,8 +130,8 @@
 	{
             "name": "rs3-1",
             "processType": "mongod",
-            "version": "4.0.9",
-            "featureCompatibilityVersion": "4.0",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
             "args2_6": {
                 "systemLog": {
                     "destination": "file",
@@ -151,8 +151,8 @@
         {
             "name": "rs3-2",
             "processType": "mongod",
-            "version": "4.0.9",
-            "featureCompatibilityVersion": "4.0",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
             "args2_6": {
                 "systemLog": {
                     "destination": "file",
@@ -172,8 +172,8 @@
         {
             "name": "rs3-3",
             "processType": "mongod",
-            "version": "4.0.9",
-            "featureCompatibilityVersion": "4.0",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
             "args2_6": {
                 "systemLog": {
                     "destination": "file",
@@ -193,8 +193,8 @@
 	{
             "name": "config1",
             "processType": "mongod",
-            "version": "4.0.1",
-            "featureCompatibilityVersion": "4.0",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
             "args2_6": {
                 "sharding": {
                     "clusterRole": "configsvr"
@@ -217,8 +217,8 @@
         {
             "name": "config2",
             "processType": "mongod",
-            "version": "4.0.1",
-            "featureCompatibilityVersion": "4.0",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
             "args2_6": {
                 "sharding": {
                     "clusterRole": "configsvr"
@@ -241,8 +241,8 @@
         {
             "name": "config3",
             "processType": "mongod",
-            "version": "4.0.1",
-            "featureCompatibilityVersion": "4.0",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
             "args2_6": {
                 "sharding": {
                     "clusterRole": "configsvr"
@@ -266,8 +266,8 @@
             "name": "router1",
             "cluster": "cluster1",
             "processType": "mongos",
-            "version": "4.0.1",
-            "featureCompatibilityVersion": "4.0",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
             "args2_6": {
                 "net": {
                     "port": 5012
@@ -282,8 +282,8 @@
             "name": "router2",
             "cluster": "cluster1",
             "processType": "mongos",
-            "version": "4.0.1",
-            "featureCompatibilityVersion": "4.0",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
             "args2_6": {
                 "net": {
                     "port": 5013
@@ -298,8 +298,8 @@
             "name": "router3",
             "cluster": "cluster1",
             "processType": "mongos",
-            "version": "4.0.1",
-            "featureCompatibilityVersion": "4.0",
+            "version": "3.6.12",
+            "featureCompatibilityVersion": "3.6",
             "args2_6": {
                 "net": {
                     "port": 5014
@@ -317,18 +317,15 @@
             "members": [
                 {
                     "_id": 0,
-                    "host": "rs1-1",
-		    "priority": 2
+                    "host": "rs1-1"
                 },
                 {
                     "_id": 1,
-                    "host": "rs1-2",
-		    "priority": 1
+                    "host": "rs1-2"
                 },
                 {
                     "_id": 2,
-                    "host": "rs1-3",
-		    "priority": 1
+                    "host": "rs1-3"
                 }
             ]
         },
@@ -337,18 +334,15 @@
             "members": [
                 {
                     "_id": 0,
-                    "host": "rs2-1",
-		    "priority": 2
+                    "host": "rs2-1"
                 },
                 {
                     "_id": 1,
-                    "host": "rs2-2",
-		    "priority": 1
+                    "host": "rs2-2"
                 },
                 {
                     "_id": 2,
-                    "host": "rs2-3",
-		    "priority": 1
+                    "host": "rs2-3"
                 }
             ]
         },
@@ -357,18 +351,15 @@
             "members": [
                 {
                     "_id": 0,
-                    "host": "rs3-1",
-		    "priority": 2
+                    "host": "rs3-1"
                 },
                 {
                     "_id": 1,
-                    "host": "rs3-2",
-		    "priority": 1
+                    "host": "rs3-2"
                 },
                 {
                     "_id": 2,
-                    "host": "rs3-3",
-		    "priority": 1
+                    "host": "rs3-3"
                 }
             ]
         },
@@ -396,19 +387,19 @@
     },
     "mongoDbVersions": [
 	{
-	    "name": "4.0.9",
+	    "name": "3.6.12",
 	    "builds": [
 		{
 		    "platform": "osx",
-		    "gitVersion": "fc525e2d9b0e4bceff5c2201457e564362909765",
+		    "gitVersion": "c2b9acad0248ca06b14ef1640734b5d0595b55f1",
 		    "bits": 64,
-		    "url" : "http://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-4.0.9.tgz"
+		    "url" : "http://fastdl.mongodb.org/osx/mongodb-osx-ssl-x86_64-3.6.12.tgz"
 		},
 		{
 		    "architecture": "amd64",
 		    "platform": "linux",
-		    "url": "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-4.0.9.tgz",
-		    "gitVersion": "fc525e2d9b0e4bceff5c2201457e564362909765",
+		    "url": "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-3.6.12.tgz",
+		    "gitVersion": "c2b9acad0248ca06b14ef1640734b5d0595b55f1",
 		    "bits" : 64
 		}
 	    ]
