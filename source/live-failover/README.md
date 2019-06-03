@@ -31,7 +31,7 @@ The ``live-failover.py`` script operates in three stages represented by three di
 
 These commands are meant to be used in sequence: ``start``, followed by one or more calls to ``scenario``, followed by ``stop``.
 
-``live-failover.py`` creates a temporary file, called ``tmp_scenario_state.json``, during the ``start`` command.  If this file is not present, neither the ``scenario`` nor ``stop`` commands can be run.  This temporary file will be cleaned up during the ``stop`` command.
+``live-failover.py`` creates a temporary file, called ``tmp_scenario_state.json``, during the ``start`` command.  If this file is not present, neither the ``scenario`` nor ``stop`` commands can be run.  This temporary file will be cleaned up during the ``stop`` command.  Drivers can specify a different filename for this file using the ``--tmp-file`` option, but must pass the same value for this option into all commands.
 
 All commands can take ``--agent-config`` and ``--agent-log`` options, which set the location of files to be used by the automation agent. If either of these options is passed into the ``start`` command, the same options must also be passed into the ``scenario`` and ``stop`` commands on that run.  By default, ``--agent-config`` is ``agent-config.json`` and ``--agent-log`` is ``agent-log.json``.
 

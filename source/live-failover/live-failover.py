@@ -46,6 +46,12 @@ def parse_arguments():
 
     for p in [start, scenario, stop]:
         p.add_argument(
+            "--tmp-file",
+            default='tmp_scenario_state.json',
+            help='temporary file created and removed by this script')
+
+    for p in [start, scenario, stop]:
+        p.add_argument(
             '--debug',
             action='store_true',
             help='print stack trace if an error occurs')
@@ -114,10 +120,10 @@ def wait_for_agent_goal_state(agent_log, num_processes, msg, start_from=0):
 
     return curr_loc
 
-def load_state_file (agent_log, agent_config):
+def load_state_file (filename, agent_log, agent_config):
     '''Reads stored script data from a file on disk.
        Returns the agent pid.'''
-    data = load_json ("tmp_scenario_state.json")
+    data = load_json (filename)
     if agent_log != data["agent_log"]:
         raise Exception("must use consistent agent logfile")
     if agent_config != data["agent_config"]:
@@ -125,7 +131,7 @@ def load_state_file (agent_log, agent_config):
 
     return data["agent_pid"], data["initial_topology"]
 
-def save_state_to_file (topology, agent_log, agent_config, agent_pid):
+def save_state_to_file (filename, topology, agent_log, agent_config, agent_pid):
     '''Writes necessary state to a temporary file on disk.'''
     data = {
         "agent_log" : agent_log,
@@ -133,12 +139,12 @@ def save_state_to_file (topology, agent_log, agent_config, agent_pid):
         "agent_pid" : agent_pid,
         "initial_topology": topology,
         }
-    write_json (data, "tmp_scenario_state.json")
+    write_json (data, filename)
 
-def cleanup_state_file ():
+def cleanup_state_file (filename):
     '''Remove temporary state file.'''
-    if os.path.exists ("tmp_scenario_state.json"):
-        os.remove("tmp_scenario_state.json")
+    if os.path.exists (filename):
+        os.remove(filename)
     
 def start_automation_agent(agent_config, agent_log, topology):
     '''Initialize the automation agent and wait for
@@ -306,7 +312,8 @@ def main():
 
             if agent_pid < 0:
                 raise Exception("Could not start agent");
-            save_state_to_file (args.topology,
+            save_state_to_file (args.tmp_file,
+                                args.topology,
                                 args.agent_log,
                                 args.agent_config,
                                 agent_pid)
@@ -315,7 +322,8 @@ def main():
             print (f"Running scenario for config {args.agent_config} with downtime {args.sleep} seconds")
                    
             try:
-                agent_pid, topology_file = load_state_file (args.agent_log,
+                agent_pid, topology_file = load_state_file (args.tmp_file,
+                                                            args.agent_log,
                                                             args.agent_config)
             except FileNotFoundError:
                raise Exception('unable to run scenario; agent is not running') 
@@ -326,7 +334,8 @@ def main():
                 args.agent_config, 
                 args.agent_log, 
                 topology)
-            save_state_to_file (topology_file,
+            save_state_to_file (args.tmp_file,
+                                topology_file,
                                 args.agent_log,
                                 args.agent_config,
                                 agent_pid)
@@ -334,7 +343,8 @@ def main():
         elif args.command == "stop":
             print (f"Shutting down cluster for config {args.agent_config}")
             try:
-                agent_pid, topology_file = load_state_file (args.agent_log,
+                agent_pid, topology_file = load_state_file (args.tmp_file,
+                                                            args.agent_log,
                                                             args.agent_config)
             except FileNotFoundError:
                raise Exception('unable to shut down cluster; agent is not running') 
@@ -345,7 +355,7 @@ def main():
                    args.agent_log,
                    topology,
                    args.tombstone_file)
-            cleanup_state_file ()
+            cleanup_state_file (args.tmp_file)
 
         else:
             raise Exception("Unrecognized state")
